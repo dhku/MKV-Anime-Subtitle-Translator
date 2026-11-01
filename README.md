@@ -126,15 +126,15 @@ python main.py
 
    ```
        volumes:
-         - <프로젝트 경로>:/app	  				# settings.yml, anime.yml, prompt.yml
-         - <애니메이션 동영상 경로>:/anime		  # 애니메이션 동영상 폴더
+         - <프로젝트 경로>:/app				# settings.yml, anime.yml, prompt.yml
+         - <애니메이션 동영상 경로>:/anime		# 애니메이션 동영상 폴더
          - <프로젝트 경로>/output:/app/output
          - <프로젝트 경로>/log:/app/log
          
     ~~<예시>~~     
        volumes:
-         - /volume1/docker/MKV-Anime-Subtitle-Translator:/app	  # settings.yml, anime.yml, prompt.yml
-         - /volume1/video/anime:/anime						    # 애니메이션 동영상 폴더
+         - /volume1/docker/MKV-Anime-Subtitle-Translator:/app			# settings.yml, anime.yml, prompt.yml
+         - /volume1/video/anime:/anime						# 애니메이션 동영상 폴더
          - /volume1/docker/MKV-Anime-Subtitle-Translator/output:/app/output
          - /volume1/docker/MKV-Anime-Subtitle-Translator/log:/app/log
    ```
@@ -159,7 +159,7 @@ python main.py
 | 컨테이너 경로 | 용도 |
 | --- | --- |
 | `/app` | `settings.yml`, `anime.yml`, `prompt.yml` (없으면 자동 생성) |
-| `/app/target` | 동영상 폴더 |
+| `/anime` | 동영상 폴더 |
 | `/app/output` | 생성된 자막 |
 | `/app/log` | 실행 로그 |
 
