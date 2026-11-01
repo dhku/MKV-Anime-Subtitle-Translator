@@ -13,7 +13,7 @@ services:
       - TZ=Asia/Seoul
     volumes:
       - /volume1/docker/subtitle-translator:/app        # settings.yml, anime.yml, prompt.yml
-      - /volume1/video/anime:/anime                     # 동영상 폴더
+      - /volume1/video/anime:/app/target                # 동영상 폴더
       - /volume1/docker/subtitle-translator/output:/app/output
       - /volume1/docker/subtitle-translator/log:/app/log
     restart: "no"
