@@ -1,6 +1,25 @@
 # MKV-Anime-Subtitle-Translator
 
-target 폴더의 애니메이션 동영상마다 한국어 자막을 만들어 `output/{작품명}/{S01E03}/`에 저장합니다.
+
+
+> 폴더에 애니를 넣어두기만 하세요. 한국어 자막은 알아서 생깁니다. 
+
+**자막 수집 → 싱크 보정 → AI 번역 → 정리까지, 애니메이션 한국어 자막 자동화 파이프라인**
+
+Jimaku 일본어 자막과 MKV 내장 자막을 찾아 타이밍을 맞추고, AI로 번역해 에피소드별로 정리합니다. 
+
+NAS에 올려두고 스케줄러만 걸어두면, 새 에피소드가 들어올 때마다 자막이 준비됩니다.
+
+
+
+## 기능
+
+* Jimaku에서 시즌·회차에 맞는 일본어 자막을 자동 선택 
+
+* 내장 자막 또는 Whisper 음성 인식으로 alass 싱크 보정 
+
+- OpenAI / Gemini 번역 + 작품별 용어집으로 일관된 고유명사 
+- `output/작품명/S01E03/` 구조로 깔끔하게 정리, 처리한 회차는 건너뜀
 
 ## 동작 순서
 
@@ -41,8 +60,10 @@ target 폴더의 애니메이션 동영상마다 한국어 자막을 만들어 `
 
 ### anime.yml (작품별)
 
-`title` 은 필수이고, 나머지 항목은 적으면 `settings.yml` 전역값 대신 사용합니다.
-(`translate_mode`, `jimaku_keyword`, `sync_jimaku_to_embed`, `use_whisper`, `target_path`, `output_path`, `jimaku_priority`)
+프로그램 실행시, 자동으로 작품마다 `title`,  `translate_mode` ,`jimaku_keyword` 가 생성됩니다.
+
+해당 항목은 수정하면 `settings.yml` 전역값 대신 사용합니다.
+(`translate_mode`, `jimaku_keyword`, `sync_jimaku_to_embed`, `use_whisper`, `target_path`, `output_path`)
 
 ```yaml
 mkv_anime_list: '[
@@ -79,7 +100,6 @@ python main.py
 
 - ffmpeg / ffprobe / alass 는 환경 변수(`FFMPEG_PATH`, `FFPROBE_PATH`, `ALASS_PATH`) → PATH → `lib/windows/` 순서로 찾습니다.
 - Whisper 를 쓰려면 `faster-whisper` 가 설치되어 있어야 합니다. (`requirements.txt` 에 포함)
-- Jimaku API 키는 `kudong/jimaku.py` 의 `JIMAKU_API_KEY` 를 사용합니다.
 
 ## Docker (NAS)
 
