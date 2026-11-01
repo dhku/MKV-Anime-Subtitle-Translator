@@ -103,10 +103,43 @@ python main.py
 
 ## Docker (NAS)
 
-```
-docker compose build
-docker compose run --rm subtitle-translator
-```
+1. NAS에서 소유자에게 읽기와 폴더 진입 권한을 추가합니다. (SSH 이용)
+
+   ```
+   sudo chmod u+rwx /volume1/video/anime # 애니메이션 동영상 저장 경로 (예시)
+   ```
+
+2. 도커 이미지를 빌드합니다.
+
+   ```
+   cd /volume1/공유폴더/MKV-Anime-Subtitle-Translator
+   docker-compose build
+   ```
+
+3. 볼륨을 매핑할 폴더를 미리 생성해주세요
+
+   * `/volume1/docker/subtitle-translator ` 
+   * `/volume1/docker/subtitle-translator/output`
+   * `/volume1/docker/subtitle-translator/log`
+
+   docker-compose.yml
+
+   ```
+       volumes:
+         - /volume1/docker/subtitle-translator:/app        # settings.yml, anime.yml, prompt.yml
+         - /volume1/video/anime:/videos                    # 애니메이션 동영상 폴더
+         - /volume1/docker/subtitle-translator/output:/app/output
+         - /volume1/docker/subtitle-translator/log:/app/log
+   ```
+
+   settings.yml의 target_path를 `/videos` 로 설정합니다.
+
+4. 이미지를 실행합니다.
+
+   ```
+   cd /volume1/공유폴더/MKV-Anime-Subtitle-Translator
+   docker-compose run --rm subtitle-translator
+   ```
 
 - 1회 실행 후 종료합니다. 주기 실행은 NAS 작업 스케줄러에서 위 명령을 등록하세요.
 - 이미지에 ffmpeg, alass, Whisper `tiny` 모델이 포함되어 있습니다. (CPU 전용, 기본 `linux/amd64`, 다른 아키텍처는 alass 를 소스 빌드)
