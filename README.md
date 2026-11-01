@@ -122,7 +122,7 @@ python main.py
    docker-compose build
    ```
 
-4. docker-compose.yml 를 수정합니다.
+4. docker-compose.yml을 수정합니다.
 
    ```
        volumes:
@@ -133,8 +133,8 @@ python main.py
          
     ~~<예시>~~     
        volumes:
-         - /volume1/docker/MKV-Anime-Subtitle-Translator:/app		# settings.yml, anime.yml, prompt.yml
-         - /volume1/video/anime:/anime					# 애니메이션 동영상 폴더
+         - /volume1/docker/MKV-Anime-Subtitle-Translator:/app	# settings.yml, anime.yml, prompt.yml
+         - /volume1/video/anime:/anime				# 애니메이션 동영상 폴더
          - /volume1/docker/MKV-Anime-Subtitle-Translator/output:/app/output
          - /volume1/docker/MKV-Anime-Subtitle-Translator/log:/app/log
    ```
@@ -143,7 +143,7 @@ python main.py
 
    ```
    global:
-     target_path: /anime # mkv
+     target_path: /anime
    ```
 
 6. 이미지를 실행합니다.
