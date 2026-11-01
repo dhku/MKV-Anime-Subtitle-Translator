@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+
+# 실행 데이터 (폴더는 .gitkeep 으로 유지)
+target/*
+output/*
+log/*
+!target/.gitkeep
+!output/.gitkeep
+!log/.gitkeep

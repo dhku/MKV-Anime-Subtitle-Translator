@@ -2,10 +2,11 @@
 global:
   target_path: ./target # mkv
   output_path: ./output # ass srt
-  translate_mode: "jimaku" # jimaku , embed 둘중 하나 선택
+  translate_mode: "jimaku" # jimaku, embed, auto(jimaku 실패 시 embed) 중 하나 선택
   sync_jimaku_to_embed: true # jimaku 자막을 내장 자막 기준으로 싱크를 맞춘다 (기본값 true)
   use_whisper: true # 내장 자막이 없을 때 Whisper로 레퍼런스 자막 생성 여부
 
+# Jimaku 자막 선택 우선순위. 파일명에 앞쪽 단어가 들어간 자막을 먼저 고릅니다.
 jimaku_priority:
   - ABEMA
   - Netflix

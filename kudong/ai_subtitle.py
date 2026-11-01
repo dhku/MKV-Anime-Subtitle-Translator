@@ -105,8 +105,18 @@ class Event:
         return [part for segment in self.segments for part in segment]
 
 
+_LATIN = re.compile(r"[A-Za-z]")
+
+
 def has_japanese(text):
     return _JP.search(text or "") is not None
+
+
+def needs_translation(text, lang="ja"):
+    """원문 언어(lang) 기준으로 번역할 글자가 있는지 확인합니다. ja: 일본어, en: 영어"""
+    if lang == "en":
+        return _LATIN.search(text or "") is not None
+    return has_japanese(text)
 
 
 def has_kana(text):
@@ -316,8 +326,9 @@ def _clean_spaces(text):
 
 
 class _Builder:
-    def __init__(self, keep_lyrics):
+    def __init__(self, keep_lyrics, lang="ja"):
         self.keep_lyrics = keep_lyrics
+        self.lang = lang
         self.state = {"inner": False, "voice": False, "italic": False}
         self.removed = 0
 
@@ -362,7 +373,8 @@ class _Builder:
         prefix = re.match(r"^[\s" + _MARKS + r"]*", text).group(0)
         rest = text[len(prefix):]
         label = ""
-        found = _PAREN_LABEL.match(rest)
+        # 영어 자막의 (sighs) 같은 괄호는 화자가 아니라 효과음 설명이므로 라벨로 보지 않습니다.
+        found = _PAREN_LABEL.match(rest) if self.lang != "en" else None
         if found and not _SFX_LABEL.search(found.group(1)):
             label = found.group(1).strip()
             rest = rest[found.end():]
@@ -437,7 +449,7 @@ class _Builder:
                 else:
                     kind = mode or KIND_DIALOGUE
                 part = Part(piece, segment["who"], kind, mode is not None)
-                if not has_japanese(piece):
+                if not needs_translation(piece, self.lang):
                     part.ko = polish(piece)
                 parts.append(part)
             if parts:
@@ -449,8 +461,8 @@ class _Builder:
         return Event(raw["start"], raw["end"], style, built)
 
 
-def build_events(raws, keep_lyrics=False):
-    builder = _Builder(keep_lyrics)
+def build_events(raws, keep_lyrics=False, lang="ja"):
+    builder = _Builder(keep_lyrics, lang)
     events = []
     for raw in raws:
         event = builder.event(raw)

@@ -1,0 +1,11 @@
+.git
+.claude
+**/__pycache__
+target
+output
+log
+lib/windows
+settings.yml
+anime.yml
+prompt.yml
+*.log
