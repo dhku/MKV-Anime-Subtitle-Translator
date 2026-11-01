@@ -109,7 +109,7 @@ python main.py
    /volume1/docker/MKV-Anime-Subtitle-Translator
    ```
 
-2. 애니메이션 동영상 폴더에 읽기와 폴더 진입 권한을 부여합니다. (SSH 이용 or 시놀로지 웹 속성 - 권한)
+2. 애니메이션 동영상 폴더에 읽기와 폴더 진입 권한을 부여합니다. (SSH 이용 or 시놀로지 웹에서 폴더 속성 - 권한)
 
    ```
    sudo chmod u+rwx /volume1/video/anime # 애니메이션 동영상 폴더
@@ -126,15 +126,15 @@ python main.py
 
    ```
        volumes:
-         - <프로젝트 경로>:/app				# settings.yml, anime.yml, prompt.yml
+         - <프로젝트 경로>:/app			# settings.yml, anime.yml, prompt.yml
          - <애니메이션 동영상 경로>:/anime		# 애니메이션 동영상 폴더
          - <프로젝트 경로>/output:/app/output
          - <프로젝트 경로>/log:/app/log
          
     ~~<예시>~~     
        volumes:
-         - /volume1/docker/MKV-Anime-Subtitle-Translator:/app			# settings.yml, anime.yml, prompt.yml
-         - /volume1/video/anime:/anime						# 애니메이션 동영상 폴더
+         - /volume1/docker/MKV-Anime-Subtitle-Translator:/app		# settings.yml, anime.yml, prompt.yml
+         - /volume1/video/anime:/anime					# 애니메이션 동영상 폴더
          - /volume1/docker/MKV-Anime-Subtitle-Translator/output:/app/output
          - /volume1/docker/MKV-Anime-Subtitle-Translator/log:/app/log
    ```
