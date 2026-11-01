@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+.claude
 
 # 실행 데이터 (폴더는 .gitkeep 으로 유지)
 target/*
