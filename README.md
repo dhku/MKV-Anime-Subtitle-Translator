@@ -103,41 +103,53 @@ python main.py
 
 ## Docker (NAS)
 
-1. NAS에서 소유자에게 읽기와 폴더 진입 권한을 추가합니다. (SSH 이용)
+1. 해당 프로젝트를 시놀로지 docker 공유 폴더 안에 넣습니다.  (리눅스의 경우 아무 경로에 넣으세요)
 
    ```
-   sudo chmod u+rwx /volume1/video/anime # 애니메이션 동영상 저장 경로 (예시)
+   /volume1/docker/MKV-Anime-Subtitle-Translator
    ```
 
-2. 도커 이미지를 빌드합니다.
+2. 애니메이션 동영상 폴더에 읽기와 폴더 진입 권한을 부여합니다. (SSH 이용 or 시놀로지 웹 속성 - 권한)
 
    ```
-   cd /volume1/공유폴더/MKV-Anime-Subtitle-Translator
+   sudo chmod u+rwx /volume1/video/anime # 애니메이션 동영상 폴더
+   ```
+
+3. 도커 이미지를 빌드합니다.
+
+   ```
+   cd /volume1/docker/MKV-Anime-Subtitle-Translator
    docker-compose build
    ```
 
-3. 볼륨을 매핑할 폴더를 미리 생성해주세요
-
-   * `/volume1/docker/subtitle-translator ` 
-   * `/volume1/docker/subtitle-translator/output`
-   * `/volume1/docker/subtitle-translator/log`
-
-   docker-compose.yml
+4. docker-compose.yml 를 수정합니다.
 
    ```
        volumes:
-         - /volume1/docker/subtitle-translator:/app        # settings.yml, anime.yml, prompt.yml
-         - /volume1/video/anime:/videos                    # 애니메이션 동영상 폴더
-         - /volume1/docker/subtitle-translator/output:/app/output
-         - /volume1/docker/subtitle-translator/log:/app/log
+         - <프로젝트 경로>:/app	  				# settings.yml, anime.yml, prompt.yml
+         - <애니메이션 동영상 경로>:/anime		  # 애니메이션 동영상 폴더
+         - <프로젝트 경로>/output:/app/output
+         - <프로젝트 경로>/log:/app/log
+         
+    ~~<예시>~~     
+       volumes:
+         - /volume1/docker/MKV-Anime-Subtitle-Translator:/app	  # settings.yml, anime.yml, prompt.yml
+         - /volume1/video/anime:/anime						    # 애니메이션 동영상 폴더
+         - /volume1/docker/MKV-Anime-Subtitle-Translator/output:/app/output
+         - /volume1/docker/MKV-Anime-Subtitle-Translator/log:/app/log
    ```
 
-   settings.yml의 target_path를 `/videos` 로 설정합니다.
-
-4. 이미지를 실행합니다.
+5. settings.yml의 target_path를 `/anime` 로 수정합니다.
 
    ```
-   cd /volume1/공유폴더/MKV-Anime-Subtitle-Translator
+   global:
+     target_path: /anime # mkv
+   ```
+
+6. 이미지를 실행합니다.
+
+   ```
+   cd /volume1/docker/MKV-Anime-Subtitle-Translator
    docker-compose run --rm subtitle-translator
    ```
 
