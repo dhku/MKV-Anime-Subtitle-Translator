@@ -59,7 +59,9 @@ COPY main.py /opt/translator/main.py
 COPY kudong /opt/translator/kudong
 COPY docker/entrypoint.sh /entrypoint.sh
 # Windows 에서 체크아웃해 CRLF 가 들어가도 동작하도록 줄바꿈을 정리합니다.
-RUN sed -i 's/\r$//' /entrypoint.sh && chmod 0755 /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh \
+ && chmod 0755 /entrypoint.sh \
+ && chmod -R a+rX /opt/translator
 
 WORKDIR /app
 VOLUME ["/app", "/app/target", "/app/output", "/app/log"]
