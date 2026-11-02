@@ -473,6 +473,7 @@ def build_events(raws, keep_lyrics=False, lang="ja"):
 
 def polish(text):
     value = "" if text is None else str(text)
+    value = value.replace("⸩", "")
     value = re.sub(r"\{[^{}]*\}", "", value)
     value = re.sub(r"</?[A-Za-z][^<>]*>", "", value)
     for token in ("\\N", "\\n", "\\h", "\r", "\n"):
