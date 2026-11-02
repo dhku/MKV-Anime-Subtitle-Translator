@@ -60,10 +60,9 @@ NAS에 올려두고 스케줄러만 걸어두면, 새 에피소드가 들어올 
 
 ### anime.yml (작품별)
 
-프로그램 실행시, 자동으로 작품마다 `title`,  `translate_mode` ,`jimaku_keyword` 가 생성됩니다.
-
-해당 항목은 수정하면 `settings.yml` 전역값 대신 사용합니다.
-(`translate_mode`, `jimaku_keyword`, `sync_jimaku_to_embed`, `use_whisper`, `target_path`, `output_path`)
+프로그램 실행시, 자동으로 작품마다 `title`,  `translate_mode` ,`jimaku_keyword` 가 생성됩니다. </br>
+Optional : `translate_mode`, `jimaku_keyword`, `sync_jimaku_to_embed`, `use_whisper`, `target_path`, `output_path` </br>
+해당 항목들을 수정하면 `settings.yml` 전역값 대신 사용합니다.
 
 ```yaml
 mkv_anime_list: '[
@@ -74,6 +73,7 @@ mkv_anime_list: '[
   }
   ]'
 ```
+프로그램을 실행했을 때 `jimaku_keyword`로 jimaku.cc에서 검색 결과가 나오지 않는다면, 키워드를 직접 수정해 주세요.
 
 ### prompt.yml
 
