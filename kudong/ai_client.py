@@ -456,11 +456,11 @@ def _chat(client, provider, model, system, user, label="AI 요청"):
             )
             if "response_format" in payload and format_rejected:
                 payload.pop("response_format", None)
-                log.info("[=] %s: 이 모델은 JSON 형식 지정 없이 번역합니다.", label)
+                log.info("[=] %s: 이 모델은 JSON 형식 지정 없이 번역을 진행합니다.", label)
                 changed = True
             if "temperature" in payload and "temperature" in message:
                 payload.pop("temperature", None)
-                log.info("[=] %s: 이 모델은 기본 temperature로 번역합니다.", label)
+                log.info("[=] %s: 이 모델은 기본 temperature로 번역을 진행합니다.", label)
                 changed = True
             if "reasoning_effort" in payload and ("reasoning" in message or "thinking" in message):
                 rejected = payload.pop("reasoning_effort")
