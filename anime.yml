@@ -1,17 +1,3 @@
 mkv_anime_list: '[
 
-  { 
-    "title" : "Romelia Senki",
-    "translate_mode" : "embed",
-    "jimaku_keyword" : "Romelia Senki",
-    "sync_jimaku_to_embed" : true,
-    "target_path" : "./target",
-    "output_path" : "./output"
-  },
-  { 
-    "title":"Reincarnated as a Sword",
-    "translate_mode" : "jimaku",
-    "jimaku_keyword":"Reincarnated as a Sword"
-  }
-
   ]'
