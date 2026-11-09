@@ -88,12 +88,13 @@ def update_anime_list(settings):
 
 # ---------------------------------------------------------------- 번역 / 싱크
 def _translate(job, src, lang):
-    """src 자막을 번역해 결과 목록에 넣습니다. AI 번역이 꺼져 있으면 원문 자막만 남깁니다."""
+    """src 자막을 전처리·번역해 결과 목록에 넣고 번역 자막 경로를 돌려줍니다.
+    AI 번역이 꺼져 있으면 원문 자막만 남기고 None 을 돌려줍니다."""
     settings = job.settings
     if not ai_client.is_enabled(settings.settings_path):
         log.warning("[=] AI 번역이 꺼져 있어(ai-translate.active: none) 원문 자막만 저장합니다.")
         job.note("번역", "사용 안 함 (ai-translate.active: none) — 원문 자막만 저장")
-        return
+        return None
     out_name = "%s.ko%s" % (job.base, ai_client.output_extension(src))
     out_path = job.work / out_name
     title_dir = job.anime.output_path / safe_name(job.anime.title)
@@ -104,6 +105,7 @@ def _translate(job, src, lang):
     )
     job.out_files[out_name] = out_path
     job.note("번역", "%s → 한국어 (%s / %s)" % (ai_client.LANG_NAMES[lang], info["provider"], info["model"]))
+    return out_path
 
 
 def _reference(job):
@@ -119,29 +121,43 @@ def _reference(job):
     return path, "Whisper %s (VAD 필터, 내장 자막 없음: %s)" % (tools.WHISPER_MODEL, info)
 
 
-def _sync(job, src):
-    """jimaku 자막 싱크 보정. 실패해도 에피소드는 실패로 보지 않고, 원래 타이밍 자막을 사용합니다."""
+def _sync(job, targets):
+    """alass 싱크 보정. targets: [(설명, 자막 경로)] 를 같은 레퍼런스에 맞춥니다.
+
+    반환: {자막 경로: 결과 경로}. 실패해도 에피소드는 실패로 보지 않고, 원래 타이밍 자막을 사용합니다.
+    """
+    synced = {src: src for _label, src in targets}
     log.info("[+] 싱크 보정을 시작합니다.")
     try:
         ref, desc = _reference(job)
-        if ref is None:
-            log.warning("[=] 싱크 보정을 건너뜁니다: %s", desc)
-            job.note("싱크 보정", "건너뜀 — " + desc)
-            return src
-        log.info("> 레퍼런스: %s", desc)
-        out = job.work / ("%s.synced%s" % (src.stem, src.suffix))
-        result = tools.alass_sync_file(ref, src, out)
     except Exception as error:
-        log.warning("[=] 싱크 보정에 실패해 Jimaku 원래 타이밍을 사용합니다: %s", error)
+        log.warning("[=] 레퍼런스 자막을 만들지 못해 Jimaku 원래 타이밍을 사용합니다: %s", error)
         job.note("싱크 보정", "실패 — 원래 타이밍 사용 (%s)" % " ".join(str(error).split()))
-        return src
-    offsets = ", ".join("%+.2fs(%d줄)" % (s.offset, s.lines) for s in result.segments[:8])
-    if len(result.segments) > 8:
-        offsets += ", ..."
-    job.note("싱크 보정", "alass 적용 — 레퍼런스: %s / 구간 %d개: %s%s" % (
-        desc, len(result.segments), offsets,
-        " / 0초 고정 %d줄" % result.clamped if result.clamped else ""))
-    return out
+        return synced
+    if ref is None:
+        log.warning("[=] 싱크 보정을 건너뜁니다: %s", desc)
+        job.note("싱크 보정", "건너뜀 — " + desc)
+        return synced
+    log.info("> 레퍼런스: %s", desc)
+    job.note("싱크 레퍼런스", desc)
+
+    for label, src in targets:
+        log.info("> alass 싱크: %s (%s)", label, src.name)
+        out = job.work / ("%s.synced%s" % (src.stem, src.suffix))
+        try:
+            result = tools.alass_sync_file(ref, src, out)
+        except Exception as error:
+            log.warning("[=] %s 싱크 보정에 실패해 원래 타이밍을 사용합니다: %s", label, error)
+            job.note("싱크 보정 (%s)" % label, "실패 — 원래 타이밍 사용 (%s)" % " ".join(str(error).split()))
+            continue
+        offsets = ", ".join("%+.2fs(%d줄)" % (s.offset, s.lines) for s in result.segments[:8])
+        if len(result.segments) > 8:
+            offsets += ", ..."
+        job.note("싱크 보정 (%s)" % label, "alass 적용 — 구간 %d개: %s%s" % (
+            len(result.segments), offsets,
+            " / 0초 고정 %d줄" % result.clamped if result.clamped else ""))
+        synced[src] = out
+    return synced
 
 
 # ---------------------------------------------------------------- 번역 모드
@@ -155,15 +171,22 @@ def run_jimaku(job):
     job.note("우선순위 일치", sub.priority_word or "없음 (우선순위 단어가 없는 파일)")
 
     src = sub.path
-    if anime.sync_jimaku_to_embed:
-        # 번역 전 원문에 먼저 싱크를 맞춥니다. 번역은 시간값을 그대로 옮기므로 결과 자막도 같은 싱크가 됩니다.
-        src = _sync(job, src)
-    else:
-        job.note("싱크 보정", "사용 안 함 (sync_jimaku_to_embed: false)")
-
     ja_name = "%s.ja%s" % (job.base, src.suffix)
     job.out_files[ja_name] = src
-    _translate(job, src, "ja")
+
+    # 1) 전처리(같은 시간 대사 병합, 효과음·가사·라벨 줄 정리)와 번역을 먼저 합니다.
+    ko_path = _translate(job, src, "ja")
+
+    # 2) 정리된 번역 자막을 alass 로 동영상에 맞춥니다. 원문 자막도 같은 레퍼런스로 따로 맞춥니다.
+    if not anime.sync_jimaku_to_embed:
+        job.note("싱크 보정", "사용 안 함 (sync_jimaku_to_embed: false)")
+        return
+    targets = [("한국어 번역", ko_path)] if ko_path is not None else []
+    targets.append(("일본어 원문", src))
+    synced = _sync(job, targets)
+    job.out_files[ja_name] = synced[src]
+    if ko_path is not None:
+        job.out_files[ko_path.name] = synced[ko_path]
 
 
 def run_embed(job):
