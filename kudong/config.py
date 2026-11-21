@@ -63,6 +63,7 @@ class Settings:
     translate_mode: str = "jimaku"
     sync_jimaku_to_embed: bool = True
     use_whisper: bool = True
+    force_ass: bool = False
     jimaku_priority: list = field(default_factory=lambda: list(DEFAULT_PRIORITY))
 
     def resolve(self, path):
@@ -77,6 +78,7 @@ global:
   translate_mode: "jimaku" # jimaku, embed, auto(jimaku 실패 시 embed) 중 하나 선택
   sync_jimaku_to_embed: true # jimaku 자막을 내장 자막 기준으로 싱크를 맞춘다 (기본값 true)
   use_whisper: true # 내장 자막이 없을 때 Whisper로 레퍼런스 자막 생성 여부
+  force_ass: false # true면 원문이 SRT여도 번역 자막을 ASS로 만듦 (기본값 false)
 
 # Jimaku 자막 선택 우선순위. 파일명에 앞쪽 단어가 들어간 자막을 먼저 고릅니다.
 jimaku_priority:
@@ -140,6 +142,7 @@ def load_settings(base_dir):
     settings.translate_mode = _mode(get("translate_mode") or "jimaku", "settings.yml")
     settings.sync_jimaku_to_embed = _bool(get("sync_jimaku_to_embed"), True)
     settings.use_whisper = _bool(get("use_whisper"), True)
+    settings.force_ass = _bool(get("force_ass"), False)
     priority = _priority(get("jimaku_priority"))
     settings.jimaku_priority = priority if priority is not None else list(DEFAULT_PRIORITY)
     return settings
@@ -153,6 +156,7 @@ class Anime:
     jimaku_keyword: str
     sync_jimaku_to_embed: bool
     use_whisper: bool
+    force_ass: bool
     target_path: Path
     output_path: Path
     jimaku_priority: list
@@ -284,6 +288,7 @@ def load_anime_list(settings):
             jimaku_keyword=str(pick("jimaku_keyword", title)).strip(),
             sync_jimaku_to_embed=_bool(item.get("sync_jimaku_to_embed"), settings.sync_jimaku_to_embed),
             use_whisper=_bool(item.get("use_whisper"), settings.use_whisper),
+            force_ass=_bool(item.get("force_ass"), settings.force_ass),
             target_path=settings.resolve(pick("target_path", settings.target_path)),
             output_path=settings.resolve(pick("output_path", settings.output_path)),
             jimaku_priority=priority if priority is not None else settings.jimaku_priority,

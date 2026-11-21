@@ -53,6 +53,7 @@ NAS에 올려두고 스케줄러만 걸어두면, 새 에피소드가 들어올 
 | `global.translate_mode` | `jimaku` / `embed` / `auto` |
 | `global.sync_jimaku_to_embed` | Jimaku 자막 싱크 보정 여부 |
 | `global.use_whisper` | 내장 자막이 없을 때 Whisper 사용 여부 |
+| `global.force_ass` | `true` 면 원문이 SRT여도 번역 자막을 ASS(`.ko.ass`)로 만듦 (기본값 `false`) |
 | `jimaku_priority` | Jimaku 자막 선택 우선순위 (파일명에 포함된 단어 기준, 같은 순위면 ASS > SRT > SSA) |
 | `ai-translate.active` | `openai` / `gemini` / `none`. `none` 이면 번역하지 않고 원문 자막만 저장 |
 | `ai-translate.providers.*` | 제공자별 `api_key`, `model`, `base_url` |
@@ -62,7 +63,7 @@ NAS에 올려두고 스케줄러만 걸어두면, 새 에피소드가 들어올 
 ### anime.yml (작품별)
 
 프로그램 실행시, 자동으로 작품마다 `title`,  `translate_mode` ,`jimaku_keyword` 가 생성됩니다. </br>
-Optional : `translate_mode`, `jimaku_keyword`, `sync_jimaku_to_embed`, `use_whisper`, `target_path`, `output_path` </br>
+Optional : `translate_mode`, `jimaku_keyword`, `sync_jimaku_to_embed`, `use_whisper`, `force_ass`, `target_path`, `output_path` </br>
 해당 항목들을 수정하면 `settings.yml` 전역값 대신 사용합니다.
 
 ```yaml
@@ -84,7 +85,7 @@ AI 번역 프롬프트입니다. `translate` / `glossary` 는 일본어 원문, 
 
 | 파일 | 내용 |
 | --- | --- |
-| `{동영상 이름}.ko.ass` / `.ko.srt` | 한국어 번역 자막 (AI 번역을 켠 경우) |
+| `{동영상 이름}.ko.ass` / `.ko.srt` | 한국어 번역 자막 (AI 번역을 켠 경우, `force_ass: true` 면 항상 `.ass`) |
 | `{동영상 이름}.ja.*` | Jimaku 원문 자막 (싱크 보정 결과 반영) |
 | `{동영상 이름}.en.*` | 내장 영어 자막 (embed 모드) |
 | `finish.txt` | 처리 기록 (사용한 모드, 자막 출처, 싱크 결과, 번역 모델) |

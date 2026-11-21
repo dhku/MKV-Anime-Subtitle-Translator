@@ -94,7 +94,7 @@ def _translate(job, src, lang):
         log.warning("[=] AI 번역이 꺼져 있어(ai-translate.active: none) 원문 자막만 저장합니다.")
         job.note("번역", "사용 안 함 (ai-translate.active: none) — 원문 자막만 저장")
         return
-    out_name = "%s.ko%s" % (job.base, ai_client.output_extension(src))
+    out_name = "%s.ko%s" % (job.base, ai_client.output_extension(src, job.anime.force_ass))
     out_path = job.work / out_name
     title_dir = job.anime.output_path / safe_name(job.anime.title)
     glossary = title_dir / ("용어집-%s.yml" % lang)

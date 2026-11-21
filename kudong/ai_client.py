@@ -769,7 +769,7 @@ def _save_glossary(path, glossary):
 
 
 # ---------------------------------------------------------------- 자막 다시 만들기
-def _rewrite_subtitle(text, ext, translator, glossary_path, title):
+def _rewrite_subtitle(text, ext, translator, glossary_path, title, out_ext=None):
     if ext == ".srt":
         raws, stats = sub.parse_srt(text)
     else:
@@ -814,7 +814,7 @@ def _rewrite_subtitle(text, ext, translator, glossary_path, title):
         for part, value in zip(parts, translator.items(parts, glossary)):
             part.ko = sub.polish(value)
 
-    if ext == ".srt":
+    if (out_ext or ext) == ".srt":
         rendered, warnings = sub.render_srt(events)
     else:
         rendered, warnings = sub.render_ass(events)
@@ -871,8 +871,10 @@ def _write_text(path, text, bom=False):
         raise
 
 
-def output_extension(src_path):
-    """번역 결과 확장자. SRT 는 SRT 로, ASS/SSA 는 ASS 로 다시 만듭니다."""
+def output_extension(src_path, force_ass=False):
+    """번역 결과 확장자. SRT 는 SRT 로, ASS/SSA 는 ASS 로 다시 만듭니다. force_ass 면 SRT 도 ASS 로 만듭니다."""
+    if force_ass:
+        return ".ass"
     return ".srt" if os.path.splitext(src_path)[1].lower() == ".srt" else ".ass"
 
 
@@ -926,9 +928,12 @@ def translate_subtitle(src_path, out_path, lang, settings_path, prompt_path, glo
              options["concurrency"], options["item_batch"], "사용" if options["glossary"] else "사용 안 함")
     translator = _Translator(client, provider, model, options, load_prompts(prompt_path), lang)
 
+    out_ext = ".srt" if os.path.splitext(os.fspath(out_path))[1].lower() == ".srt" else ".ass"
+    if ext == ".srt" and out_ext == ".ass":
+        log.info("> 출력 형식: SRT → ASS (force_ass)")
     text = _read_text(src_path)
     with _ProgressTicker() as ticker:
-        rendered = _rewrite_subtitle(text, ext, translator, glossary_path, title)
+        rendered = _rewrite_subtitle(text, ext, translator, glossary_path, title, out_ext)
     _write_text(out_path, rendered)
     log.info("[+] 번역이 완료 되었습니다. (%d초) → %s", int(ticker.elapsed), out_path)
     return {"provider": provider, "model": model}

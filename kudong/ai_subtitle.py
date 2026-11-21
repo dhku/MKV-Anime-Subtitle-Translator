@@ -605,6 +605,21 @@ def _layout(event, italic_open, italic_close):
     return lines
 
 
+_ASS_TIME = re.compile(r"^\d+:\d{2}:\d{2}\.\d{2}$")
+
+
+def _ass_time(value):
+    """ASS 시간 형식(H:MM:SS.cc)으로 맞춥니다. SRT 시간(00:01:02,345)을 ASS 로 바꿀 때 씁니다."""
+    value = str(value).strip()
+    if _ASS_TIME.match(value):
+        return value
+    centis = int(round(_ass_seconds(value) * 100))
+    hours, rest = divmod(centis, 360000)
+    minutes, rest = divmod(rest, 6000)
+    seconds, centis = divmod(rest, 100)
+    return "%d:%02d:%02d.%02d" % (hours, minutes, seconds, centis)
+
+
 def render_ass(events):
     output = [ASS_HEADER.rstrip("\n")]
     warnings = []
@@ -615,7 +630,8 @@ def render_ass(events):
         if len(lines) > 2:
             warnings.append("%d줄 자막: %s ~ %s" % (len(lines), event.start, event.end))
         output.append(
-            "Dialogue: 0,%s,%s,%s,,0,0,0,,%s" % (event.start, event.end, event.style, "\\N".join(lines))
+            "Dialogue: 0,%s,%s,%s,,0,0,0,,%s"
+            % (_ass_time(event.start), _ass_time(event.end), event.style, "\\N".join(lines))
         )
     return "\n".join(output) + "\n", warnings
 
