@@ -41,8 +41,8 @@ def run():
         settings = load_settings(base)
         log.info("> target_path: %s", settings.target_path)
         log.info("> output_path: %s", settings.output_path)
-        log.info("> translate_mode: %s / sync_jimaku_to_embed: %s / use_whisper: %s",
-                 settings.translate_mode, settings.sync_jimaku_to_embed, settings.use_whisper)
+        log.info("> translate_mode: %s / sync_jimaku_to_embed: %s / use_whisper: %s / force_ass: %s",
+                 settings.translate_mode, settings.sync_jimaku_to_embed, settings.use_whisper, settings.force_ass)
         log.info("> jimaku_priority: %s", " > ".join(settings.jimaku_priority) or "(없음)")
         stats = pipeline.run(settings)
     except ConfigError as error:
