@@ -69,9 +69,11 @@ _CONTINUES = re.compile(r"(?:[➡➨➔➜➝➞➙➛→⇒⇨—―–、,]\s*
 _TRAIL_DASH = re.compile(r"\s*[—―–]+(?=[\s" + _MARKS + r"]*$)")
 _LEAD_DASH = re.compile(r"^\s*[-‐‑]\s*(?=\S)")
 _PAREN = re.compile(r"\([^()]*\)")
-_PAREN_LABEL = re.compile(r"\(([^()]{1,20})\)\s*")
+# (万里花(まりか)) 처럼 읽는 법이 들어간 라벨도 화자 라벨로 읽도록 한 단계 중첩 괄호를 허용합니다.
+_PAREN_LABEL = re.compile(r"\(((?:[^()]|\([^()]*\)){1,20})\)\s*")
+_DOUBLE_PAREN = re.compile(r"\(\(([^()]*)\)\)")
 _COLON_LABEL = re.compile(r"([^\s()「」『』:、。!?…・" + _MARKS + r"]{1,12}):\s*")
-_SFX_LABEL = re.compile(r"音|拍手|笑い|泣き|息|悲鳴|歓声|ため息|咳|どよめき|ざわめき|BGM|曲|音楽|鳴き|響き")
+_SFX_LABEL = re.compile(r"音|拍手|笑|泣き|息|悲鳴|歓声|ため息|咳|どよめき|ざわめき|BGM|曲|音楽|鳴き|響き|咆哮|唸り|吠え|叫び|ハミング|鼻歌")
 _SCREEN_STYLE = re.compile(r"sign|title|screen|caption|card|place|location|telop|テロップ|看板|タイトル", re.I)
 _SONG_STYLE = re.compile(r"^(?:op|ed)(?:$|[\s_\-\d])|song|kara|lyric|歌", re.I)
 _ASS_DRAWING = re.compile(r"\\p[1-9]")
@@ -324,6 +326,33 @@ def _clean_spaces(text):
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _paren_depth(text):
+    text = unicodedata.normalize("NFKC", text)
+    return text.count("(") - text.count(")")
+
+
+def _join_split_parens(lines, sep, lookahead=2):
+    """（エリザベートの\\Nハミング） 처럼 줄바꿈으로 나뉜 괄호를 한 줄로 합칩니다.
+    괄호가 lookahead 줄 안에서 닫힐 때만 합치고, 끝내 닫히지 않으면 원래 줄을 그대로 둡니다."""
+    merged = []
+    index = 0
+    while index < len(lines):
+        text, color, name = lines[index]
+        depth = _paren_depth(text)
+        end = index
+        if depth > 0:
+            for ahead in range(index + 1, min(len(lines), index + 1 + lookahead)):
+                depth += _paren_depth(lines[ahead][0])
+                if depth <= 0:
+                    end = ahead
+                    break
+        if end > index:
+            text = sep.join(line[0].strip() for line in lines[index:end + 1])
+        merged.append((text, color, name))
+        index = end + 1
+    return merged
+
+
 class _Builder:
     def __init__(self, keep_lyrics, lang="ja"):
         self.keep_lyrics = keep_lyrics
@@ -362,7 +391,8 @@ class _Builder:
 
     def _line(self, text):
         text = unicodedata.normalize("NFKC", text)
-        text = text.replace("((", "").replace("))", "")
+        # ((대사)) 형태의 이중 괄호만 벗깁니다. "))"를 무조건 지우면 (万里花(まりか)) 의 닫는 괄호가 사라집니다.
+        text = _DOUBLE_PAREN.sub(r"\1", text)
         dash = False
         lead = _LEAD_DASH.match(text)
         if lead:
@@ -375,7 +405,7 @@ class _Builder:
         # 영어 자막의 (sighs) 같은 괄호는 화자가 아니라 효과음 설명이므로 라벨로 보지 않습니다.
         found = _PAREN_LABEL.match(rest) if self.lang != "en" else None
         if found and not _SFX_LABEL.search(found.group(1)):
-            label = found.group(1).strip()
+            label = _PAREN.sub("", found.group(1)).strip() or found.group(1).strip()
             rest = rest[found.end():]
         else:
             found = _COLON_LABEL.match(rest)
@@ -400,7 +430,8 @@ class _Builder:
         pending_label = ""
         last_cont = False
         has_song = False
-        for text, color, name in raw["lines"]:
+        lines = _join_split_parens(raw["lines"], " " if self.lang == "en" else "")
+        for text, color, name in lines:
             label, dash, cleaned, cont, song = self._line(text)
             runs = self._walk(cleaned)
             if song or raw["song"]:
